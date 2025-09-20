@@ -171,6 +171,11 @@ function setHomeManagerPathVariables() {
 }
 
 function setFlakeAttribute() {
+    echo "Setting flake attribute. VERBOSE: $VERBOSE"
+    if [[ -v VERBOSE ]]; then
+        echo "Verbose mode enabled"
+    fi
+
     if [[ -z $FLAKE_ARG && ! -v HOME_MANAGER_CONFIG ]]; then
         local configHome="${XDG_CONFIG_HOME:-$HOME/.config}"
         local hmConfigHome="$configHome/home-manager"
@@ -202,11 +207,14 @@ function setFlakeAttribute() {
                 # Check FQDN, long, and short hostnames; long first to preserve
                 # pre-existing behaviour in case both happen to be defined.
                 for n in "$USER@$(hostname -f)" "$USER@$(hostname)" "$USER@$(hostname -s)"; do
+                    echo "Checking hostname suffix: $n"
                     if [[ "$(nix eval "$flake#homeConfigurations" --apply "x: x ? \"$(escapeForNix "$n")\"")" == "true" ]]; then
                         name="$n"
                         if [[ -v VERBOSE ]]; then
                             echo "Using flake homeConfiguration for $name"
                         fi
+                    else
+                        echo "Did not find: $n"
                     fi
                 done
                 ;;
